@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  djeurnie-core-idp
+  
+  Sample SAM Template for djeurnie-core
+
+Parameters:
+  CognitoUserPoolName:
+    Type: String
+    Description: Cognito  User Pool name
+  CognitoUserPoolClientName:
+    Type: String
+    Description: Cognito Web User Pool Client name
+
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Ref CognitoUserPoolName
+      AutoVerifiedAttributes:
+        - email
+      EmailConfiguration:
+        EmailSendingAccount: DEVELOPER
+        SourceArn: arn:aws:ses:eu-west-1:906201371042:identity/jeroen@djeurnie.com
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+          TemporaryPasswordValidityDays: 7
+      UsernameAttributes:
+        - email
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate:
+          - email
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+      UsernameConfiguration:
+        CaseSensitive: false
+      Schema:
+        - AttributeDataType: String
+          Mutable: false
+          Name: sub
+          Required: true
+          StringAttributeConstraints:
+            MaxLength: '2048'
+            MinLength: '1'
+        - AttributeDataType: String
+          Mutable: true
+          Name: email
+          Required: true
+          StringAttributeConstraints:
+            MaxLength: '2048'
+            MinLength: '0'
+        - AttributeDataType: String
+          Mutable: true
+          Name: preferred_username
+          Required: true
+          StringAttributeConstraints:
+            MaxLength: '2048'
+            MinLength: '0'
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: login.djeurnie.com
+      UserPoolId: !Ref UserPool
+      CustomDomainConfig:
+        CertificateArn: arn:aws:acm:us-east-1:906201371042:certificate/ce96d05d-e1e3-46e3-9de7-74331a6b2f56
+
+  WebCognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Ref CognitoUserPoolClientName
+      TokenValidityUnits:
+        AccessToken: hours
+      AccessTokenValidity: 12
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - email
+        - openid
+      ExplicitAuthFlows:
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      ReadAttributes:
+        - email
+        - email_verified
+        - preferred_username
+      WriteAttributes:
+        - email
+        - preferred_username
+      CallbackURLs:
+        - http://localhost
+        - http://localhost:3333/auth/code
+      AuthSessionValidity: 3
