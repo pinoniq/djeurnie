@@ -1,17 +1,10 @@
 import { LoaderArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import {getOAuthAuthorizationUrl} from "~/cognito/auth";
 
 export function loader({ request }: LoaderArgs) {
-    const {
-        COGNITO_DOMAIN,
-        COGNITO_CLIENT_ID,
-        COGNITO_SCOPES,
-        COGNITO_REDIRECT_URI,
-        COGNITO_RESPONSE_TYPE,
-    } = process.env;
-
     return json({
-        cognito: `${COGNITO_DOMAIN}/oauth2/authorize?client_id=${COGNITO_CLIENT_ID}&response_type=${COGNITO_RESPONSE_TYPE}&scope=${COGNITO_SCOPES}&redirect_uri=${encodeURIComponent(COGNITO_REDIRECT_URI)}`,
+        cognito: getOAuthAuthorizationUrl(),
     });
 }
 
