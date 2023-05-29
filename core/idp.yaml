@@ -82,7 +82,6 @@ Resources:
       AccessTokenValidity: 12
       AllowedOAuthFlows:
         - code
-        - implicit
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
         - email
@@ -91,6 +90,7 @@ Resources:
         - ALLOW_CUSTOM_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_USER_SRP_AUTH
+      GenerateSecret: true
       ReadAttributes:
         - email
         - email_verified
@@ -99,6 +99,5 @@ Resources:
         - email
         - preferred_username
       CallbackURLs:
-        - http://localhost
-        - http://localhost:3333/auth/code
+        - http://localhost:3000/auth/code
       AuthSessionValidity: 3
