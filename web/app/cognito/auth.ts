@@ -1,20 +1,20 @@
-import invariant from "tiny-invariant";
-import {query} from "express";
 
-const {
-    COGNITO_DOMAIN,
-    COGNITO_CLIENT_ID,
-    COGNITO_CLIENT_SECRET,
-    COGNITO_SCOPES,
-    COGNITO_REDIRECT_URI,
-    COGNITO_RESPONSE_TYPE,
-} = process.env;
+import { CognitoJwtVerifier } from "aws-jwt-verify";
+import invariant from "tiny-invariant";
+import {CognitoJwtVerifierSingleUserPool} from "aws-jwt-verify/cognito-verifier";
 
 function getCognitoDomain(): string {
     const cognitoDomain: string | undefined = process.env.COGNITO_DOMAIN;
     invariant(cognitoDomain, 'No Cognito Domain configured');
 
     return cognitoDomain;
+}
+
+function getCognitoUserPoolId(): string {
+    const cognitoClientId: string | undefined = process.env.COGNITO_USER_POOL_ID;
+    invariant(cognitoClientId, 'No Cognito User Pool ID configured');
+
+    return cognitoClientId;
 }
 
 function getCognitoClientId(): string {
@@ -52,6 +52,30 @@ function getCognitoResponseType(): string {
     return cognitoResponseType;
 }
 
+type VerifiersCache = {
+    id: CognitoJwtVerifier<any, any, any> | undefined,
+    access: CognitoJwtVerifier<any, any, any> | undefined,
+}
+const verifiers: VerifiersCache = {
+    id: undefined,
+    access: undefined,
+};
+export function getCognitoTokenVerifier(tokenUse: "id" | "access"): CognitoJwtVerifier<any, any, any> {
+    if (!verifiers[tokenUse]) {
+        verifiers[tokenUse] = CognitoJwtVerifier.create({
+            userPoolId: getCognitoUserPoolId(),
+            tokenUse,
+            clientId: getCognitoClientId(),
+        });
+    }
+
+    const verifier = verifiers[tokenUse];
+    invariant(verifier, 'Verifier failed creating');
+
+    return verifier;
+}
+
+
 export function getOAuthAuthorizationUrl(): string {
     const queryParams = new URLSearchParams();
     queryParams.append('client_id', getCognitoClientId());
@@ -59,7 +83,7 @@ export function getOAuthAuthorizationUrl(): string {
     queryParams.append('redirect_uri', getCognitoRedirectUri());
 
     // add scopes directly into the url since Cognito required the + to be un-encoded.
-    return `${COGNITO_DOMAIN}/oauth2/authorize?${queryParams.toString()}&scope=${getCognitoClientScopes()}`;
+    return `${getCognitoDomain()}/oauth2/authorize?${queryParams.toString()}&scope=${getCognitoClientScopes()}`;
 }
 
 export async function getOAuthTokenFromCode(code: string) {
@@ -74,7 +98,7 @@ export async function getOAuthTokenFromCode(code: string) {
     tokenBody.append('redirect_uri', getCognitoRedirectUri());
     tokenBody.append('scope', getCognitoClientScopes());
 
-    const tokenResponse = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
+    const tokenResponse = await fetch(`${getCognitoDomain()}/oauth2/token`, {
         method: 'POST',
         headers: tokenHeaders,
         body: tokenBody,

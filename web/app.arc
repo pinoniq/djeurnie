@@ -11,3 +11,7 @@ profile default
   src server
 
 @static
+
+@create
+autocreate true
+
