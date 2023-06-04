@@ -1,8 +1,8 @@
 import type { ActionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 
-import {destroySession, getSession} from "~/session";
+import {destroySession, getSessionFromRequest} from "@/session";
 
-export const action = async ({ request }: ActionArgs) => destroySession(await getSession(request.headers.get('Cookie')));
+export const action = async ({ request }: ActionArgs) => destroySession(await getSessionFromRequest(request));
 
 export const loader = async () => redirect("/");

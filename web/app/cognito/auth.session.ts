@@ -1,5 +1,10 @@
 import { Session } from "@remix-run/server-runtime";
-import { getCognitoTokenVerifier } from "~/cognito/auth";
+import {getCognitoTokenVerifier, getOAuthTokenFromCode} from "@/cognito/auth";
+import invariant from "tiny-invariant";
+
+export type SessionIdData = {
+    email: string,
+};
 
 export async function setAccessToken(session: Session<any, any>, accessToken: string) {
     const verifier = getCognitoTokenVerifier('access');
@@ -9,8 +14,12 @@ export async function setAccessToken(session: Session<any, any>, accessToken: st
     session.set('accessToken', accessToken);
 }
 
-export function getAccessToken(session: Session<any, any>) {
+export function getAccessToken(session: Session<any, any>): string {
     return session.get('accessToken');
+}
+
+export function getId(session: Session<any, any>): SessionIdData {
+    return session.get('id');
 }
 
 export async function getAccessTokenPayload(session: Session<any, any>) {
@@ -20,14 +29,17 @@ export async function getAccessTokenPayload(session: Session<any, any>) {
     return await verifier.verify(accessToken);
 }
 
-export async function setIdToken(session: Session<any, any>, accessToken: string) {
+export async function setUserSessionFromCode(session: Session<any, any>, code: string) {
+    const tokens = await getOAuthTokenFromCode(code);
+    invariant(tokens.access_token, 'Missing access token');
+
+    await setAccessToken(session, tokens.access_token);
+
+    invariant(tokens.id_token, 'Missing id token');
     const verifier = getCognitoTokenVerifier('id');
+    const payload = await verifier.verify(tokens.id_token);
 
-    await verifier.verify(accessToken);
-
-    session.set('idToken', accessToken);
-}
-
-export function getIdToken(session: Session<any, any>) {
-    return session.get('accessToken');
+    session.set('id', {
+        email: payload.email,
+    });
 }

@@ -1,6 +1,6 @@
 import { LoaderArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import {getOAuthAuthorizationUrl} from "~/cognito/auth";
+import {getOAuthAuthorizationUrl} from "@/cognito/auth";
 
 export function loader({ request }: LoaderArgs) {
     return json({

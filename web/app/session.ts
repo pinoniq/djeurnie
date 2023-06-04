@@ -1,9 +1,10 @@
 import { createCookieSessionStorage } from "@remix-run/node";
 import invariant from "tiny-invariant";
+import {SessionIdData} from "@/cognito/auth.session";
 
 type SessionData = {
     accessToken: string;
-    idToken: string;
+    id: SessionIdData;
 };
 
 type SessionFlashData = {
@@ -24,7 +25,6 @@ const { getSession, commitSession, destroySession } =
                 name: "__session",
                 domain: "localhost",
                 httpOnly: true,
-                maxAge: 3600,
                 path: "/",
                 sameSite: "lax",
                 secrets: [getCookieSecret()],
@@ -32,5 +32,9 @@ const { getSession, commitSession, destroySession } =
             },
         }
     );
+
+export async function getSessionFromRequest(request: Request) {
+    return await getSession(request.headers.get('Cookie'));
+}
 
 export { getSession, commitSession, destroySession };

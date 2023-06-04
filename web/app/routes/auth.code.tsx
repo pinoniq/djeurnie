@@ -1,9 +1,8 @@
 import {LoaderArgs, json, redirect} from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import {getOAuthTokenFromCode} from "~/cognito/auth";
 import invariant from "tiny-invariant";
-import {commitSession, getSession} from "~/session";
-import {setAccessToken} from "~/cognito/auth.session";
+import {commitSession, getSessionFromRequest} from "@/session";
+import {setUserSessionFromCode} from "@/cognito/auth.session";
 
 export async function loader({ request }: LoaderArgs) {
     const url = new URL(request.url);
@@ -15,14 +14,11 @@ export async function loader({ request }: LoaderArgs) {
         });
     }
 
+    const session = await getSessionFromRequest(request);
     const code: string | null = url.searchParams.get('code');
     invariant(code, 'Missing authorization code');
 
-    const tokens = await getOAuthTokenFromCode(code);
-    invariant(tokens.access_token, 'Missing access token');
-
-    const session = await getSession(request.headers.get('Cookie'));
-    await setAccessToken(session, tokens.access_token);
+    await setUserSessionFromCode(session, code);
 
     return redirect('/', {
         headers: {

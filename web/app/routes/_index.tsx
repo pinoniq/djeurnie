@@ -2,29 +2,35 @@ import type {V2_MetaFunction} from "@remix-run/node";
 import {json, LoaderArgs} from "@remix-run/node";
 import {Link, useLoaderData} from "@remix-run/react";
 
-import {getSession} from "~/session";
-import {getAccessToken, getAccessTokenPayload} from "~/cognito/auth.session";
+import {getSessionFromRequest} from "@/session";
+import {getAccessToken, getAccessTokenPayload, getId, SessionIdData} from "@/cognito/auth.session";
 
 export const meta: V2_MetaFunction = () => [{title: "DJEURNIE Web"}];
 
 export async function loader({request}: LoaderArgs) {
-    const session = await getSession(request.headers.get('Cookie'));
+    const session = await getSessionFromRequest(request);
     const accessToken = getAccessToken(session);
-    let accessTokenPayload = {}
-    if (accessToken) {
-        accessTokenPayload = await getAccessTokenPayload(session);
+    if (!accessToken) {
+        return json({
+            session: {
+                accessToken,
+                payload: null,
+            }
+        });
+
     }
 
+    const idPayload: SessionIdData = await getId(session);
     return json({
         session: {
             accessToken,
-            payload: accessTokenPayload,
+            payload: idPayload || null,
         }
-    })
+    });
 }
 
 export default function Index() {
-    const data = useLoaderData();
+    const data = useLoaderData<typeof loader>();
 
     return (
         <main className="relative">
@@ -37,8 +43,7 @@ export default function Index() {
             )}
             {data.session.payload && (
                 <>
-                    <pre>Sub: {data.session.payload.sub}</pre>
-                    <pre>exp: {data.session.payload.exp}</pre>
+                    <pre>Sub: {data.session.payload.email}</pre>
                 </>
             )}
         </main>
