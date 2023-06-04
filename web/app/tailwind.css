@@ -2,8 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: 'Montserrat';
+    src: url('/fonts/Montserrat/Montserrat-VariableFont_wght.ttf');
+}
+
+@font-face {
+    font-family: 'Archivo Black';
+    src: url('/fonts/Archivo_Black/ArchivoBlack-Regular.ttf');
+}
+
 @layer base {
     :root {
+        --font-sans: 'Montserrat';
+        --font-heading: 'Archivo Black';
+
         --background: 0 0% 100%;
         --foreground: 222.2 47.4% 11.2%;
 

@@ -15,6 +15,30 @@ module.exports = {
     },
     extend: {
       colors: {
+        gray: {
+          50: '#f5f5f5',
+          450: '#b0b4bd',
+          900: '#313131',
+        },
+        blue: {
+          10: '#8DACB4',
+          50: '#53AECE',
+          450: '#18B1D2',
+          900: '#25d1f7',
+        },
+        green: {
+          50: '#39bca3',
+          450: '#39bca3',
+          900: '#1ce8c6',
+        },
+        orange: {
+          50: '#ff9f45',
+          450: '#ff9f45',
+          900: '#ffbc80',
+        },
+        bg: {
+          'light': '#f9fbfc',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -56,6 +80,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
+        heading: ["var(--font-heading)", ...fontFamily.sans],
       },
       keyframes: {
         "accordion-down": {
