@@ -1,6 +1,8 @@
 import { Session } from "@remix-run/server-runtime";
 import {getCognitoTokenVerifier, getOAuthTokenFromCode} from "@/cognito/auth";
 import invariant from "tiny-invariant";
+import { getSessionFromRequest } from "@/session";
+import { redirect } from "@remix-run/node";
 
 export type SessionIdData = {
     email: string,
@@ -42,4 +44,26 @@ export async function setUserSessionFromCode(session: Session<any, any>, code: s
     session.set('id', {
         email: payload.email,
     });
+}
+
+export type UserSession = {
+    email: string,
+};
+
+export function getUserSession(session: Session<any, any>): UserSession {
+    return session.get('id');
+}
+
+export async function requireUserSession(request: Request) : Promise<[string, UserSession]> {
+    const session = await getSessionFromRequest(request);
+    const [accessToken, userSession] = await Promise.all([
+        getAccessToken(session),
+        getUserSession(session)
+    ]);
+
+    if (!accessToken || !userSession) {
+        throw redirect('/login');
+    }
+
+    return [accessToken, userSession];
 }

@@ -3,7 +3,13 @@ import {json, LoaderArgs} from "@remix-run/node";
 import {Link, useLoaderData} from "@remix-run/react";
 
 import {getSessionFromRequest} from "@/session";
-import {getAccessToken, getAccessTokenPayload, getId, SessionIdData} from "@/cognito/auth.session";
+import {
+    getAccessToken,
+    getAccessTokenPayload,
+    getId,
+    requireUserSession,
+    SessionIdData
+} from "@/cognito/auth.session";
 import Sidebar, {
     STATE as SidebarState
 } from "@/components/ui/Sidebar";
@@ -12,23 +18,15 @@ import { useState } from "react";
 export const meta: V2_MetaFunction = () => [{title: "DJEURNIE Web"}];
 
 export async function loader({request}: LoaderArgs) {
-    const session = await getSessionFromRequest(request);
-    const accessToken = getAccessToken(session);
-    if (!accessToken) {
-        return json({
-            session: {
-                accessToken,
-                payload: null,
-            }
-        });
+    const [
+        accessToken,
+        userSession,
+    ] = await requireUserSession(request);
 
-    }
-
-    const idPayload: SessionIdData = await getId(session);
     return json({
         session: {
             accessToken,
-            payload: idPayload || null,
+            payload: userSession,
         }
     });
 }
@@ -50,14 +48,8 @@ export default function Index() {
                     <li><Link to="/login">Login</Link></li>
                     <li><Link to="/login">Logout</Link></li>
                 </ul>
-                {data.session.accessToken && (
-                    <pre>{data.session.accessToken}</pre>
-                )}
-                {data.session.payload && (
-                    <>
-                        <pre>Sub: {data.session.payload.email}</pre>
-                    </>
-                )}
+                <pre>{data.session.accessToken}</pre>
+                <pre>Sub: {data.session.payload.email}</pre>
             </main>
         </div>
 
