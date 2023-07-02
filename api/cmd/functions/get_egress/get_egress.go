@@ -4,6 +4,7 @@ import (
 	"context"
 	"djeurnie/api/internal/database"
 	transport "djeurnie/api/internal/transport/lambda"
+	"errors"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -20,14 +21,7 @@ func handler(ctx context.Context, r Request) (Response, error) {
 	}
 
 	// all the actual logic happens in that method call
-	user, err := service.GetUserByID(ctx, userID)
-	if err != nil {
-		return transport.SendError(500, err)
-	} else user == nil {
-		return transport.SendError(404, "user not found")
-	}
-
-	return transport.Send(200, user)
+	return transport.SendError(404, errors.New("not implemented"))
 }
 
 func main() {

@@ -12,27 +12,33 @@ Globals:
     TracingEnabled: true
 
 Resources:
-  EgressHttpApi:
+  CoreHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       CorsConfiguration: true
-  EgressFunction:
+  CoreFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
     Properties:
-      Handler: egress
-      Runtime: go1.x
-      CodeUri: egress/
+      Handler: bootstrap
+      Runtime: provided.al2
+      CodeUri: ./
+      Architectures:
+        - arm64
       Policies:
         - AmazonDynamoDBFullAccess
-      Architectures:
-        - x86_64
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+        - AWSXrayWriteOnlyAccess
+      Tracing: Active
       Events:
-        GetEgress:
+        CatchAll:
           Type: HttpApi
           Properties:
-            ApiId: !Ref EgressHttpApi
-            Path: /{tenant}/egress/{model}/{id}
-            Method: GET
+            ApiId: !Ref CoreHttpApi
+            Path: /{tenant}/core/{route+}
+            Method: ANY
             PayloadFormatVersion: "2.0"
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
@@ -59,4 +65,4 @@ Outputs:
   HttpApiUrl:
     Description: URL of your API endpoint
     Value:
-      Fn::Sub: 'https://${EgressHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/'
+      Fn::Sub: 'https://${CoreHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/'
