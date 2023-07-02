@@ -10,19 +10,25 @@ type HealthCheckResponse struct {
 	Tenant string `json:"tenant"`
 }
 
-func HealthCheck() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		rawTenant := c.Locals("tenant")
+type HealthCheckErrorResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
 
-		if rawTenant == nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Tenant not found")
-		}
+func HealthCheck(c *fiber.Ctx) error {
+	rawTenant := c.Locals("tenant")
 
-		tenant := rawTenant.(models.Tenant)
-
-		return c.JSON(HealthCheckResponse{
-			Status: "ok",
-			Tenant: tenant.Id,
+	if rawTenant == nil {
+		return c.JSON(HealthCheckErrorResponse{
+			Status:  "error",
+			Message: "No tenant found",
 		})
 	}
+
+	tenant := rawTenant.(models.Tenant)
+
+	return c.JSON(HealthCheckResponse{
+		Status: "ok",
+		Tenant: tenant.Id,
+	})
 }

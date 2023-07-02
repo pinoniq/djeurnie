@@ -15,6 +15,7 @@ Resources:
   CoreHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      Name: "CoreHttpApi"
       CorsConfiguration: true
   CoreFunction:
     Type: AWS::Serverless::Function
@@ -29,7 +30,6 @@ Resources:
       Policies:
         - AmazonDynamoDBFullAccess
         - AWSLambdaBasicExecutionRole
-        - AWSLambda_ReadOnlyAccess
         - AWSXrayWriteOnlyAccess
       Tracing: Active
       Events:
@@ -37,7 +37,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref CoreHttpApi
-            Path: /{tenant}/core/{route+}
+            Path: /{route+}
             Method: ANY
             PayloadFormatVersion: "2.0"
   ApplicationResourceGroup:

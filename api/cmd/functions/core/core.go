@@ -9,21 +9,25 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	fiberAdapter "github.com/awslabs/aws-lambda-go-api-proxy/fiber"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 var fiberLambda *fiberAdapter.FiberLambda
 
 func main() {
-	app := fiber.New(fiber.Config{
-		AppName: "Djeurnie Core",
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
-		},
-	})
+	app := fiber.New()
 
+	app.Use(
+		recover.New(),
+		logger.New(logger.Config{
+			// For more options, see the Config section
+			Format: "[${time}] ${status} - ${latency} ${method} ${path}",
+		}),
+	)
 	app.Use(middleware.TenantMiddleware())
 
-	app.Get("/", handlers.HealthCheck())
+	app.Get("/", handlers.HealthCheck)
 
 	if helpers.IsLambda() {
 		fiberLambda = fiberAdapter.New(app)
@@ -35,5 +39,5 @@ func main() {
 }
 
 func Handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	return fiberLambda.ProxyWithContextV2(ctx, request)
+	return fiberLambda.ProxyV2(request)
 }
