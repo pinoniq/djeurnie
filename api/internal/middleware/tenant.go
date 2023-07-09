@@ -5,7 +5,6 @@ import (
 	"djeurnie/api/internal/models"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,9 +14,6 @@ func getAPIGatewayContextV2(c *fiber.Ctx) (events.APIGatewayV2HTTPRequestContext
 	reqHeaders := c.GetReqHeaders()
 
 	apiGwContextHeader, ok := reqHeaders["X-Golambdaproxy-Apigw-Context"]
-
-	fmt.Println(ok)
-	fmt.Println(apiGwContextHeader)
 
 	if !ok {
 		return events.APIGatewayV2HTTPRequestContext{}, errors.New("No context header in request")

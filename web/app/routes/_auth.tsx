@@ -4,7 +4,6 @@ import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration, } from "@r
 
 import stylesheet from "@/tailwind.css";
 import { useState } from "react";
-import Sidebar, { STATE as SidebarState } from "@/components/ui/Sidebar";
 
 export const links: LinksFunction = () => [
     {rel: "stylesheet", href: stylesheet},
@@ -14,8 +13,6 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
-    const [sidebarState, setSidebarState] = useState(SidebarState.OPEN);
-
     return (
         <html lang="en" className="h-full">
         <head>
@@ -26,15 +23,7 @@ export default function App() {
         </head>
         <body className="h-full">
         <div className="flex">
-            <Sidebar
-                state={sidebarState}
-                toggleState={() => setSidebarState(sidebarState === SidebarState.OPEN ? SidebarState.CLOSED : SidebarState.OPEN)}
-            />
-
-            <main className="p-7">
-                <Outlet/>
-            </main>
-
+            <Outlet/>
         </div>
         <ScrollRestoration/>
         <Scripts/>
