@@ -5,6 +5,12 @@ Description: >
   
   Sample SAM Template for djeurnie-core
 
+Parameters:
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: dev
+
 Resources:
   DjeurnieDefaultIdp:
     Type: AWS::Serverless::Application
@@ -13,3 +19,9 @@ Resources:
       Parameters:
         CognitoUserPoolName: djeurnie-default
         CognitoUserPoolClientName: djeurnie-web-client
+  OrderApplication:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: order.yaml
+      Parameters:
+        Environment: !Ref Environment

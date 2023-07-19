@@ -31,7 +31,7 @@ export default function App() {
                 toggleState={() => setSidebarState(sidebarState === SidebarState.OPEN ? SidebarState.CLOSED : SidebarState.OPEN)}
             />
 
-            <main className="p-7">
+            <main className="p-9">
                 <Outlet/>
             </main>
 

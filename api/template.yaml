@@ -15,7 +15,7 @@ Resources:
   CoreHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      Name: "CoreHttpApi"
+      Name: "${AWS::StackName}-orders-api"
       CorsConfiguration: true
   CoreFunction:
     Type: AWS::Serverless::Function

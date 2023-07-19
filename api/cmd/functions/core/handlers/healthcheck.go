@@ -6,29 +6,25 @@ import (
 )
 
 type HealthCheckResponse struct {
-	Status string `json:"status"`
-	Tenant string `json:"tenant"`
-}
-
-type HealthCheckErrorResponse struct {
 	Status  string `json:"status"`
+	Tenant  string `json:"tenant"`
 	Message string `json:"message"`
 }
 
-func HealthCheck(c *fiber.Ctx) error {
+func HealthCheck(c *fiber.Ctx) (*HealthCheckResponse, error) {
 	rawTenant := c.Locals("tenant")
 
 	if rawTenant == nil {
-		return c.JSON(HealthCheckErrorResponse{
+		return &HealthCheckResponse{
 			Status:  "error",
 			Message: "No tenant found",
-		})
+		}, nil
 	}
 
 	tenant := rawTenant.(models.Tenant)
 
-	return c.JSON(HealthCheckResponse{
+	return &HealthCheckResponse{
 		Status: "ok",
 		Tenant: tenant.Id,
-	})
+	}, nil
 }
