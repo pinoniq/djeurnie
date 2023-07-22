@@ -28,7 +28,7 @@ func main() {
 		recover.New(),
 		logger.New(logger.Config{
 			// For more options, see the Config section
-			Format: "[${time}] ${status} - ${latency} ${method} ${path}",
+			Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 		}),
 	)
 	app.Use(middleware.DeciderOfEncodings())
