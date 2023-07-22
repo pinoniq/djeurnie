@@ -44,10 +44,13 @@ export default function Sidebar({ state, toggleState }: SidebarProps) {
 
   return (
     <div
-      className={clsx("relative h-screen bg-bg-light p-5 pt-8 duration-200", {
-        "w-72": open,
-        "w-20": !open,
-      })}
+      className={clsx(
+        "relative h-screen grow-0 bg-bg-light p-5 pt-8 duration-200",
+        {
+          "w-72": open,
+          "w-20": !open,
+        }
+      )}
     >
       <ArrowRight
         className={clsx(
