@@ -15,8 +15,23 @@ Resources:
   CoreHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      Name: "${AWS::StackName}-orders-api"
+      Name: "core-api"
       CorsConfiguration: true
+  IngressTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "ingress"
+      AttributeDefinitions:
+        - AttributeName: "tenantId"
+          AttributeType: "S"
+        - AttributeName: "ingressId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "tenantId"
+          KeyType: "HASH"
+        - AttributeName: "ingressId"
+          KeyType: "RANGE"
+      BillingMode: PAY_PER_REQUEST
   CoreFunction:
     Type: AWS::Serverless::Function
     Metadata:
