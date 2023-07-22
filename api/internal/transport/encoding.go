@@ -6,12 +6,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func encode[T any](c *fiber.Ctx, res T) error {
-	accepts := c.Accepts("application/json", "application/x-protobuf", "application/xml")
+var defaultAccepts = "application/json"
 
-	if accepts == "" {
-		return errors.New("missing accept header")
-	}
+func encode[T any](c *fiber.Ctx, res T) error {
+	// @see middleware.ExtensionAsFormatter
+	accepts := c.Locals(fiber.HeaderAccept).(string)
 
 	switch accepts {
 	case "application/json":

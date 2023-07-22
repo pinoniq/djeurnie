@@ -31,6 +31,7 @@ func main() {
 			Format: "[${time}] ${status} - ${latency} ${method} ${path}",
 		}),
 	)
+	app.Use(middleware.DeciderOfEncodings())
 	app.Use(middleware.TenantMiddleware())
 
 	app.Get("/healthcheck", transport.WrapEncodingWithTenant(handlers.HealthCheck))

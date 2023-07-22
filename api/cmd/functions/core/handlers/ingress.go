@@ -6,14 +6,30 @@ import (
 )
 
 type IngressResponse struct {
-	Status  string `json:"status"`
-	Tenant  string `json:"tenant"`
-	Message string `json:"message"`
+	Id          string `json:"id" xml:"id"`
+	DisplayName string `json:"displayName" xml:"displayName"`
 }
 
-func IngressList(c *fiber.Ctx, tenant models.Tenant) (*IngressResponse, error) {
-	return &IngressResponse{
+type IngressListResponse struct {
+	Status  string            `json:"status" xml:"status"`
+	Tenant  string            `json:"tenant" xml:"tenant"`
+	Ingress []IngressResponse `json:"items" xml:"items"`
+}
+
+func IngressList(c *fiber.Ctx, tenant models.Tenant) (*IngressListResponse, error) {
+	listRes := IngressListResponse{
 		Status: "ok",
 		Tenant: tenant.Id,
-	}, nil
+	}
+
+	listRes.Ingress = append(listRes.Ingress, IngressResponse{
+		Id:          "ingress-0",
+		DisplayName: "Jeroen is cool",
+	})
+	listRes.Ingress = append(listRes.Ingress, IngressResponse{
+		Id:          "ingress-1",
+		DisplayName: "Katleen ook",
+	})
+
+	return &listRes, nil
 }
