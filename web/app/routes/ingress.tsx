@@ -3,11 +3,11 @@ import { requireUserSession } from "@/cognito/auth.session";
 import api from "@/api";
 import { useLoaderData } from "@remix-run/react";
 import { sleep } from "@/lib/utils";
+import Typography from "@/components/ui/Typography";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 export async function loader({ request }: LoaderArgs) {
   const [accessToken, userSession] = await requireUserSession(request);
-
-  await sleep(1000);
 
   const ingressList = await api.ingress.list(accessToken);
 
@@ -21,12 +21,16 @@ export default function Ingress() {
 
   return (
     <div>
-      <h1>Ingress</h1>
-      <ul>
+      <Typography.headings.Heading1>Ingress</Typography.headings.Heading1>
+      <div className="flew flex-col">
         {data.ingressList.items.map((ingress) => (
-          <li key={ingress.id}>{ingress.displayName}</li>
+          <Card key={ingress.id}>
+            <CardHeader>
+              <CardTitle>{ingress.displayName}</CardTitle>
+            </CardHeader>
+          </Card>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

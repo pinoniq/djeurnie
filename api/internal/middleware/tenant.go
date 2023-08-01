@@ -33,7 +33,7 @@ func TenantMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// default tenantId, useful for local use and testing
 		// TODO: remove this default value when in production
-		tenantId := "00000000-0000-0000-0000-000000000000"
+		tenantId := "5cdaedd3-0cc7-4d9c-899c-6dc4e6b717ac"
 
 		if helpers.IsLambda() {
 			apiGwContext, err := getAPIGatewayContextV2(c)
