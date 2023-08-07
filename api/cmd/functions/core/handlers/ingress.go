@@ -21,7 +21,6 @@ type IngressListResponse struct {
 	Ingress []IngressResponse `json:"items" xml:"items"`
 }
 
-// 5cdaedd3-0cc7-4d9c-899c-6dc4e6b717ac
 func IngressList(c *fiber.Ctx, tenant models.Tenant) (*IngressListResponse, error) {
 	listRes := IngressListResponse{
 		Status: "ok",
