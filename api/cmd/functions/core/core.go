@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"djeurnie/api/cmd/functions/core/handlers"
+	"djeurnie/api/internal/database"
 	"djeurnie/api/internal/helpers"
 	"djeurnie/api/internal/middleware"
 	"djeurnie/api/internal/service/ingress"
@@ -16,10 +17,6 @@ import (
 )
 
 var fiberLambda *fiberAdapter.FiberLambda
-
-type Env struct {
-	ingress ingress.IngressService
-}
 
 func main() {
 	app := fiber.New()
@@ -36,7 +33,12 @@ func main() {
 
 	app.Get("/healthcheck", transport.WrapEncodingWithTenant(handlers.HealthCheck))
 
-	app.Get("/ingress", transport.WrapEncodingWithTenant(handlers.IngressList))
+	svc := database.GetDynamodbSession()
+
+	// Ingress
+	ingressService := ingress.NewDynamoDbService(svc, "ingress")
+	ingressHandler := handlers.NewIngressHandler(&ingressService)
+	app.Get("/ingress", transport.WrapEncodingWithTenant(ingressHandler.List))
 
 	if helpers.IsLambda() {
 		fiberLambda = fiberAdapter.New(app)

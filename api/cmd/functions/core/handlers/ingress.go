@@ -1,53 +1,48 @@
 package handlers
 
 import (
-	"context"
-	"djeurnie/api/internal/database"
 	"djeurnie/api/internal/models"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"djeurnie/api/internal/service/ingress"
 	"github.com/gofiber/fiber/v2"
 )
 
-type IngressResponse struct {
+type Handler interface {
+	List(c *fiber.Ctx, tenant models.Tenant) (*ingressListResponse, error)
+}
+
+type handler struct {
+	Ingress ingress.Service
+}
+
+type ingressResponse struct {
 	Id          string `json:"id" xml:"id"`
 	DisplayName string `json:"displayName" xml:"displayName"`
 }
 
-type IngressListResponse struct {
+type ingressListResponse struct {
 	Status  string            `json:"status" xml:"status"`
 	Tenant  string            `json:"tenant" xml:"tenant"`
-	Ingress []IngressResponse `json:"items" xml:"items"`
+	Ingress []ingressResponse `json:"items" xml:"items"`
 }
 
-func IngressList(c *fiber.Ctx, tenant models.Tenant) (*IngressListResponse, error) {
-	listRes := IngressListResponse{
+func (h *handler) List(c *fiber.Ctx, tenant models.Tenant) (*ingressListResponse, error) {
+	listRes := ingressListResponse{
 		Status: "ok",
 		Tenant: tenant.Id,
 	}
 
-	tableName := "ingress"
-	svc := database.GetDynamodbSession()
+	tenantsIngress := h.Ingress.All(tenant)
 
-	out, err := svc.Query(context.TODO(), &dynamodb.QueryInput{
-		TableName:              aws.String(tableName),
-		KeyConditionExpression: aws.String("TenantId = :TenantId"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":TenantId": &types.AttributeValueMemberS{Value: tenant.Id},
-		},
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	for _, item := range out.Items {
-		listRes.Ingress = append(listRes.Ingress, IngressResponse{
-			Id:          item["IngressId"].(*types.AttributeValueMemberS).Value,
-			DisplayName: item["DisplayName"].(*types.AttributeValueMemberS).Value,
+	for _, item := range tenantsIngress.Items {
+		listRes.Ingress = append(listRes.Ingress, ingressResponse{
+			Id:          item.Id,
+			DisplayName: item.DisplayName,
 		})
 	}
 
 	return &listRes, nil
+}
+
+func NewIngressHandler(ingress *ingress.Service) Handler {
+	return &handler{Ingress: *ingress}
 }

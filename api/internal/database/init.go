@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -9,6 +10,7 @@ import (
 )
 
 func GetDynamodbSession() *dynamodb.Client {
+	fmt.Println("Connecting to local DynamoDB")
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(),
 		config.WithRegion("eu-west-1"),

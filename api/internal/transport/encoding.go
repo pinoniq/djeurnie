@@ -2,15 +2,14 @@ package transport
 
 import (
 	"djeurnie/api/internal/models"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"time"
 )
 
-var defaultAccepts = "application/json"
-
-func encode[T any](c *fiber.Ctx, res T) error {
-	// @see middleware.ExtensionAsFormatter
-	accepts := c.Locals(fiber.HeaderAccept).(string)
+func encode[T any](c *fiber.Ctx, res T, accepts string) error {
 
 	switch accepts {
 	case "application/json":
@@ -39,6 +38,26 @@ func WrapEncodingWithTenant[T any](handler func(c *fiber.Ctx, t models.Tenant) (
 			return c.SendStatus(fiber.StatusNotAcceptable)
 		}
 
-		return encode(c, res)
+		// @see middleware.ExtensionAsFormatter
+		accepts := c.Locals(fiber.HeaderAccept).(string)
+
+		go logResponse(res, accepts)
+
+		return encode(c, res, accepts)
+	}
+}
+
+func logResponse[T any](res T, accepts string) {
+	time.Sleep(2 * time.Second)
+	// Do stuff that continues doing stuff after the response has been sent
+	fmt.Println("response:")
+	switch accepts {
+	case "application/json":
+		rawResponse, err := json.Marshal(res)
+		if err == nil {
+			fmt.Println(string(rawResponse))
+		} else {
+			fmt.Println(err)
+		}
 	}
 }
