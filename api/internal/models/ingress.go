@@ -1,9 +1,9 @@
 package models
 
 type Ingress struct {
-	TenantID    string `dynamodbav:"TenantId"`
-	Id          string `dynamodbav:"IngressId"`
-	DisplayName string `dynamodbav:"DisplayName"`
+	Id          string `dynamodbav:"IngressId" db:"id"`
+	TenantID    string `dynamodbav:"TenantId" db:"tenant_id"`
+	DisplayName string `dynamodbav:"DisplayName" db:"display_name"`
 }
 
 type IngressList struct {

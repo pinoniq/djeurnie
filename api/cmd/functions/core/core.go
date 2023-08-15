@@ -14,11 +14,21 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/joho/godotenv"
 )
 
 var fiberLambda *fiberAdapter.FiberLambda
 
+var inLambda = helpers.IsLambda()
+
 func main() {
+	if !inLambda {
+		err := godotenv.Load()
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	app := fiber.New()
 
 	app.Use(
@@ -33,14 +43,15 @@ func main() {
 
 	app.Get("/healthcheck", transport.WrapEncodingWithTenant(handlers.HealthCheck))
 
-	svc := database.GetDynamodbSession()
+	svc := database.GetPlanetScalSession()
 
 	// Ingress
-	ingressService := ingress.NewDynamoDbService(svc, "ingress")
+	ingressService := ingress.NewPlanetScaleDbService(svc)
 	ingressHandler := handlers.NewIngressHandler(&ingressService)
+	app.Get("/ingress/:Id", transport.WrapEncodingWithTenant(ingressHandler.Get))
 	app.Get("/ingress", transport.WrapEncodingWithTenant(ingressHandler.List))
 
-	if helpers.IsLambda() {
+	if inLambda {
 		fiberLambda = fiberAdapter.New(app)
 		lambda.Start(Handler)
 	} else {

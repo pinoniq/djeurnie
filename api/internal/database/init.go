@@ -2,15 +2,16 @@ package database
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	_ "github.com/go-sql-driver/mysql"
+	"os"
 )
 
 func GetDynamodbSession() *dynamodb.Client {
-	fmt.Println("Connecting to local DynamoDB")
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(),
 		config.WithRegion("eu-west-1"),
@@ -34,4 +35,13 @@ func GetDynamodbSession() *dynamodb.Client {
 	return dynamodb.NewFromConfig(cfg, func(options *dynamodb.Options) {
 		options.EnableAcceptEncodingGzip = true
 	})
+}
+
+func GetPlanetScalSession() *sql.DB {
+	db, err := sql.Open("mysql", os.Getenv("PS_DSN"))
+	if err != nil {
+		panic(err)
+	}
+
+	return db
 }

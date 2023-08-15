@@ -8,6 +8,7 @@ import (
 
 type Handler interface {
 	List(c *fiber.Ctx, tenant models.Tenant) (*ingressListResponse, error)
+	Get(c *fiber.Ctx, tenant models.Tenant) (*ingressResponse, error)
 }
 
 type handler struct {
@@ -41,6 +42,21 @@ func (h *handler) List(c *fiber.Ctx, tenant models.Tenant) (*ingressListResponse
 	}
 
 	return &listRes, nil
+}
+
+func (h *handler) Get(c *fiber.Ctx, tenant models.Tenant) (*ingressResponse, error) {
+	ingressId := c.Params("Id")
+
+	item, err := h.Ingress.Get(tenant, ingressId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &ingressResponse{
+		Id:          item.Id,
+		DisplayName: item.DisplayName,
+	}, nil
 }
 
 func NewIngressHandler(ingress *ingress.Service) Handler {
