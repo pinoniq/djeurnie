@@ -36,9 +36,7 @@ func main() {
 
 	factory := handlers.NewFactory(svc)
 
-	app := fiber.New(fiber.Config{
-		EnablePrintRoutes: true,
-	})
+	app := fiber.New()
 
 	app.Use(
 		recover.New(),
