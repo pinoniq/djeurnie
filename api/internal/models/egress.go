@@ -1,54 +1,34 @@
 package models
 
 import (
-	"fmt"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 )
 
-type EgressDataBlob struct {
-	headers []string
-	body    []string
-}
-
 type Egress struct {
-	TenantID                 string                         `dynamodbav:"tenantId"`
-	Id                       string                         `dynamodbav:"id"`
-	IdentificationStrategies []IdentificationStrategyConfig `dynamodbav:"identificationStrategies"`
+	Id          string       `db:"id"`
+	DisplayName string       `db:"display_name"`
+	Config      EgressConfig `db:"config"`
 }
 
-type IdentificationStrategyConfig struct {
-	Id       string
-	Strategy string
-	Config   []string
+type EgressConfig struct {
+	Handler string `json:"handler"`
 }
 
-func (isc *IdentificationStrategyConfig) createStrategy() (IdentificationStrategy, error) {
-	switch isc.Strategy {
-	case "PropertyMatcher":
-		return PropertyMatcherStrategy{
-			Config: isc.Config,
-		}, nil
+type EgressList struct {
+	Items []Egress
+}
+
+func (ec *EgressConfig) Value() (driver.Value, error) {
+	return json.Marshal(ec)
+}
+
+func (ec *EgressConfig) Scan(src interface{}) error {
+	b, ok := src.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
 	}
 
-	return nil, fmt.Errorf("createStrategy: No strategy found for %s", isc.Strategy)
-}
-
-type IdentifiedDataModel struct {
-	Id                     string
-	IdentificationStrategy IdentificationStrategy
-	Egress                 Egress
-}
-
-type IdentificationStrategy interface {
-	Identify(input EgressDataBlob) IdentifiedDataModel
-}
-
-type PropertyMatcherStrategy struct {
-	Config []string
-}
-
-func (pms PropertyMatcherStrategy) Identify(input EgressDataBlob) IdentifiedDataModel {
-	return IdentifiedDataModel{
-		Id:                     "test",
-		IdentificationStrategy: pms,
-	}
+	return json.Unmarshal(b, &ec)
 }

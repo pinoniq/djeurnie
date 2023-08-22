@@ -6,8 +6,7 @@ import (
 	"djeurnie/api/internal/database"
 	"djeurnie/api/internal/helpers"
 	"djeurnie/api/internal/middleware"
-	"djeurnie/api/internal/service/ingress"
-	"djeurnie/api/internal/transport"
+	apiRoutes "djeurnie/api/internal/service/api_routes"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	fiberAdapter "github.com/awslabs/aws-lambda-go-api-proxy/fiber"
@@ -15,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
+	"os"
 )
 
 var fiberLambda *fiberAdapter.FiberLambda
@@ -29,7 +29,16 @@ func main() {
 		}
 	}
 
-	app := fiber.New()
+	resourceGroupId := os.Getenv("RESOURCE_GROUP_ID")
+
+	svc := database.GetPlanetScalSession()
+	apiRoutesService := apiRoutes.NewPlanetScaleDbService(svc)
+
+	factory := handlers.NewFactory(svc)
+
+	app := fiber.New(fiber.Config{
+		EnablePrintRoutes: true,
+	})
 
 	app.Use(
 		recover.New(),
@@ -39,17 +48,14 @@ func main() {
 		}),
 	)
 	app.Use(middleware.DeciderOfEncodings())
-	app.Use(middleware.TenantMiddleware())
 
-	app.Get("/healthcheck", transport.WrapEncodingWithTenant(handlers.HealthCheck))
+	app.Get("/healthcheck", handlers.HealthCheck)
 
-	svc := database.GetPlanetScalSession()
-
-	// Ingress
-	ingressService := ingress.NewPlanetScaleDbService(svc)
-	ingressHandler := handlers.NewIngressHandler(&ingressService)
-	app.Get("/ingress/:Id", transport.WrapEncodingWithTenant(ingressHandler.Get))
-	app.Get("/ingress", transport.WrapEncodingWithTenant(ingressHandler.List))
+	// routes
+	routes := apiRoutesService.AllForResourceGroup(resourceGroupId)
+	for _, route := range routes.Items {
+		app.Add(route.Method, route.Path, factory.CreateHandler(&route))
+	}
 
 	if inLambda {
 		fiberLambda = fiberAdapter.New(app)
@@ -60,7 +66,6 @@ func main() {
 			return
 		}
 	}
-
 }
 
 func Handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
